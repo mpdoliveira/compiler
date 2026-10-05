@@ -41,3 +41,10 @@ typedef enum TokenType
     FMT_STRING
 } TokenType;
 
+typedef struct Token
+{
+    char *lexeme;
+    TokenType type;
+    int line;
+} Token;
+
