@@ -116,6 +116,36 @@ int scan_identifier(Lexer *lexer)
     }
 }
 
+int scan_number(Lexer *lexer)
+{
+    int dot = 0;
+    while (true)
+    {
+        char c = peek_char(lexer);
+        if (isdigit(c))
+        {
+            advance_char(lexer);
+        }
+        else if (c == '.')
+        {   
+            if (dot) {
+                return 0;
+            }
+
+            advance_char(lexer);
+            if (!isgit(peek_char(lexer))) {
+                return 0;
+            }
+            dot = 1;
+            advance_char(lexer);
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}
+
 int scan_lexeme(Lexer *lexer)
 {
     char c = current_char(lexer);
@@ -123,6 +153,12 @@ int scan_lexeme(Lexer *lexer)
     {
         int start = lexer->position;
         scan_identifier(lexer);
+        print_segment(start, lexer->position, lexer->source);
+    }
+    else if (isdigit(c))
+    {
+        int start = lexer->position;
+        scan_number(lexer);
         print_segment(start, lexer->position, lexer->source);
     }
 }
