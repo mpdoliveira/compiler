@@ -99,6 +99,34 @@ void advance_char(Lexer *lexer)
     }
 }
 
+// Lexeme scanning functions
+int scan_identifier(Lexer *lexer)
+{
+    while (true)
+    {
+        char c = peek_char(lexer);
+        if (isalnum(c) || c == '_')
+        {
+            advance_char(lexer);
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}
+
+int scan_lexeme(Lexer *lexer)
+{
+    char c = current_char(lexer);
+    if (isalpha(c))
+    {
+        int start = lexer->position;
+        scan_identifier(lexer);
+        print_segment(start, lexer->position, lexer->source);
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
