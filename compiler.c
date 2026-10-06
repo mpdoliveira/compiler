@@ -58,14 +58,6 @@ typedef struct Lexer
     int line;
 } Lexer;
 
-int print_segment(int start, int end, char *str)
-{
-    for (int i = start; i < end; i++)
-    {
-        printf("%c\n", str[i]);
-    }
-}
-
 // Helper char dealing functions
 char current_char(Lexer *lexer)
 {
@@ -78,12 +70,12 @@ char peek_char(Lexer *lexer)
     {
         return lexer->source[lexer->position + 1];
     }
-    return NULL;
+    return '\0';
 }
 
 void advance_char(Lexer *lexer)
 {
-    if (peek_char(lexer) != NULL)
+    if (peek_char(lexer) != '\0')
     {
         lexer->position++;
     }
@@ -98,19 +90,32 @@ int issymb(char c)
     return 0;
 }
 
+int issep(char c)
+{
+    if (issymb(c) || isspace(c) || c == '\0')
+    {
+        return 1;
+    }
+    return 0;
+}
+
 // Lexeme scanning functions
 TokenType scan_identifier(Lexer *lexer)
 {
-    while (true)
+    while (1)
     {
         char c = peek_char(lexer);
         if (isalnum(c) || c == '_')
         {
             advance_char(lexer);
         }
+        else if (issep(c))
+        {
+            return ID;
+        }
         else
         {
-            return 1;
+            return TOKEN_ERROR;
         }
     }
 }
@@ -118,7 +123,7 @@ TokenType scan_identifier(Lexer *lexer)
 TokenType scan_number(Lexer *lexer)
 {
     TokenType num_type = INT_CONST;
-    while (true)
+    while (1)
     {
         char c = peek_char(lexer);
         if (isdigit(c))
@@ -133,16 +138,20 @@ TokenType scan_number(Lexer *lexer)
             }
 
             advance_char(lexer);
-            if (!isgit(peek_char(lexer)))
+            if (!isdigit(peek_char(lexer)))
             {
                 return TOKEN_ERROR;
             }
             num_type = FLOAT_CONST;
             advance_char(lexer);
         }
-        else
+        else if (issep(c))
         {
             return num_type;
+        }
+        else
+        {
+            return TOKEN_ERROR;
         }
     }
 }
@@ -228,24 +237,22 @@ TokenType scan_symbol(Lexer *lexer)
         return TOKEN_ERROR;
     }
 }
-int scan_lexeme(Lexer *lexer)
+TokenType scan_lexeme(Lexer *lexer)
 {
     char c = current_char(lexer);
     if (isalpha(c))
     {
         int start = lexer->position;
-        scan_identifier(lexer);
-        print_segment(start, lexer->position, lexer->source);
+        return scan_identifier(lexer);
     }
     else if (isdigit(c))
     {
         int start = lexer->position;
-        scan_number(lexer);
-        print_segment(start, lexer->position, lexer->source);
+        return scan_number(lexer);
     }
     else if (issymb(c))
     {
-        scan_symbol(lexer);
+        return scan_symbol(lexer);
     }
 }
 
@@ -253,21 +260,28 @@ int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
-        printf("Proper usage: compiler.c path.txt");
+        printf("Proper usage: compiler path.txt\n");
         return 1;
     }
 
-    FILE *fptr;
+    FILE *fptr = fopen(argv[1], "r");
 
-    fptr = fopen(argv[1], "r");
     if (fptr == NULL)
     {
-        printf("Failed to find %s", argv[1]);
+        printf("Failed to find %s\n", argv[1]);
         return 1;
     }
 
     char source_code[100];
-    fgets(source_code, 100, fptr);
+    fgets(source_code, sizeof(source_code), fptr);
 
-    Lexer *lexer = malloc(sizeof(Lexer));
+    fclose(fptr);
+
+    Lexer lexer = {
+        .source = source_code,
+        .length = strlen(source_code),
+        .position = 0,
+        .line = 1};
+    
+    return 0;
 }
