@@ -42,6 +42,14 @@ typedef enum TokenType
     FMT_STRING
 } TokenType;
 
+typedef struct Lexer
+{
+    char *source;
+    int length;
+    int position;
+    int line;
+} Lexer;
+
 typedef struct Token
 {
     char *lexeme;
@@ -49,29 +57,48 @@ typedef struct Token
     int line;
 } Token;
 
-typedef enum TypeGroup {
-    TG_NONE,
-    TG_ALPHA,
-    TG_DIGIT,
-    TG_UNDERSCORE,
-    TG_DOT,
-    TG_SINGLE_QUOTE,
-    TG_DOUBLE_QUOTE,
-    TG_EQUAL,
-    TG_EXCLAMATION,
-    TG_GREATER,
-    TG_LESS,
-    TG_MINUS,
-    TG_SIMPLE_SYMBOL,
-    TG_WHITESPACE,
-    TG_OTHER
+typedef enum TypeGroup
+{
+    NONE,
+    IDENTIFIER,
+    INTEGER,
+    FLOAT_NUMBER,
+    CHAR_LITERAL_GROUP,
+    FMT_STRING_GROUP,
+    SYMBOL
 } TypeGroup;
 
-int print_segment(int start, int end, char* str) {
-    for (int i = start; i < end; i++) {
+int print_segment(int start, int end, char *str)
+{
+    for (int i = start; i < end; i++)
+    {
         printf("%c\n", str[i]);
     }
 }
+
+// Helper char dealing functions
+char current_char(Lexer *lexer)
+{
+    return lexer->source[lexer->position];
+}
+
+char peek_char(Lexer *lexer)
+{
+    if (lexer->position + 1 < lexer->length)
+    {
+        return lexer->source[lexer->position + 1];
+    }
+    return NULL;
+}
+
+void advance_char(Lexer *lexer)
+{
+    if (peek_char(lexer) != NULL)
+    {
+        lexer->position++;
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -93,48 +120,5 @@ int main(int argc, char *argv[])
     char source_code[100];
     fgets(source_code, 100, fptr);
 
-    int lexeme_start = -1;
-
-    TypeGroup type_group = NONE;
-
-    int len = strlen(source_code);
-    for (int i = 0; i < len; i++)
-    {
-        if (isalpha(source_code[i])) {
-            if (type_group == NONE) {
-                lexeme_start = i;
-                type_group = ALPHA;
-            }
-            else if (type_group == DIGIT) {
-                print_segment(lexeme_start, i-1, source_code);
-                type_group = ALPHA;
-                lexeme_start = i;
-            }
-            else if (type_group == SYMBOL) {
-                print_segment(lexeme_start, i-1, source_code);
-                type_group = ALPHA;
-                lexeme_start = i;
-            }
-        }
-        else if (isdigit(source_code[i])) {
-            if (type_group == NONE) {
-                lexeme_start = i;
-                type_group = DIGIT;
-            }
-            else if (type_group == SYMBOL) {
-                print_segment(lexeme_start, i-1, source_code);
-                type_group = DIGIT;
-                lexeme_start = i;
-            }
-        }
-        else if (source_code[i] == '_') {
-            if (type_group != ALPHA) {
-                print_segment(lexeme_start, i-1, source_code);
-                type_group = ALPHA;
-                lexeme_start = i;
-            }
-        }
-    }
-
-    return 0;
+    Lexer *lexer = malloc(sizeof(Lexer));
 }
