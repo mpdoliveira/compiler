@@ -5,6 +5,7 @@
 
 typedef enum TokenType
 {
+    TOKEN_ERROR,
     FUNCTION,
     MAIN,
     LET,
@@ -42,14 +43,6 @@ typedef enum TokenType
     FMT_STRING
 } TokenType;
 
-typedef struct Lexer
-{
-    char *source;
-    int length;
-    int position;
-    int line;
-} Lexer;
-
 typedef struct Token
 {
     char *lexeme;
@@ -57,16 +50,13 @@ typedef struct Token
     int line;
 } Token;
 
-typedef enum TypeGroup
+typedef struct Lexer
 {
-    NONE,
-    IDENTIFIER,
-    INTEGER,
-    FLOAT_NUMBER,
-    CHAR_LITERAL_GROUP,
-    FMT_STRING_GROUP,
-    SYMBOL
-} TypeGroup;
+    char *source;
+    int length;
+    int position;
+    int line;
+} Lexer;
 
 int print_segment(int start, int end, char *str)
 {
@@ -99,8 +89,17 @@ void advance_char(Lexer *lexer)
     }
 }
 
+int issymb(char c)
+{
+    if (c == '=' || c == '!' || c == '>' || c == '<' || c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')' || c == '{' || c == '}' || c == ':' || c == ';' || c == ',')
+    {
+        return 1;
+    }
+    return 0;
+}
+
 // Lexeme scanning functions
-int scan_identifier(Lexer *lexer)
+TokenType scan_identifier(Lexer *lexer)
 {
     while (true)
     {
@@ -116,9 +115,9 @@ int scan_identifier(Lexer *lexer)
     }
 }
 
-int scan_number(Lexer *lexer)
+TokenType scan_number(Lexer *lexer)
 {
-    int dot = 0;
+    TokenType num_type = INT_CONST;
     while (true)
     {
         char c = peek_char(lexer);
@@ -127,25 +126,108 @@ int scan_number(Lexer *lexer)
             advance_char(lexer);
         }
         else if (c == '.')
-        {   
-            if (dot) {
-                return 0;
+        {
+            if (num_type == FLOAT_CONST)
+            {
+                return TOKEN_ERROR;
             }
 
             advance_char(lexer);
-            if (!isgit(peek_char(lexer))) {
-                return 0;
+            if (!isgit(peek_char(lexer)))
+            {
+                return TOKEN_ERROR;
             }
-            dot = 1;
+            num_type = FLOAT_CONST;
             advance_char(lexer);
         }
         else
         {
-            return 1;
+            return num_type;
         }
     }
 }
 
+TokenType scan_symbol(Lexer *lexer)
+{
+    char c = current_char(lexer);
+    char next_c = peek_char(lexer);
+
+    switch (c)
+    {
+    case '=':
+        if (next_c == '=')
+        {
+            advance_char(lexer);
+            return EQ;
+        }
+        return ASSIGN;
+
+    case '!':
+        if (next_c == '=')
+        {
+            advance_char(lexer);
+            return NE;
+        }
+        return TOKEN_ERROR;
+
+    case '>':
+        if (next_c == '=')
+        {
+            advance_char(lexer);
+            return GE;
+        }
+        return GT;
+
+    case '<':
+        if (next_c == '=')
+        {
+            advance_char(lexer);
+            return LE;
+        }
+        return LT;
+
+    case '+':
+        return PLUS;
+
+    case '-':
+        if (next_c == '>')
+        {
+            advance_char(lexer);
+            return ARROW;
+        }
+        return MINUS;
+
+    case '*':
+        return MULT;
+
+    case '/':
+        return DIV;
+
+    case '{':
+        return LBRACE;
+
+    case '}':
+        return RBRACE;
+
+    case '(':
+        return LBRACKET;
+
+    case ')':
+        return RBRACKET;
+
+    case ':':
+        return COLON;
+
+    case ';':
+        return SEMICOLON;
+
+    case ',':
+        return COMMA;
+
+    default:
+        return TOKEN_ERROR;
+    }
+}
 int scan_lexeme(Lexer *lexer)
 {
     char c = current_char(lexer);
@@ -161,8 +243,11 @@ int scan_lexeme(Lexer *lexer)
         scan_number(lexer);
         print_segment(start, lexer->position, lexer->source);
     }
+    else if (issymb(c))
+    {
+        scan_symbol(lexer);
+    }
 }
-
 
 int main(int argc, char *argv[])
 {
