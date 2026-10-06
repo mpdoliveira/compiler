@@ -49,6 +49,30 @@ typedef struct Token
     int line;
 } Token;
 
+typedef enum TypeGroup {
+    TG_NONE,
+    TG_ALPHA,
+    TG_DIGIT,
+    TG_UNDERSCORE,
+    TG_DOT,
+    TG_SINGLE_QUOTE,
+    TG_DOUBLE_QUOTE,
+    TG_EQUAL,
+    TG_EXCLAMATION,
+    TG_GREATER,
+    TG_LESS,
+    TG_MINUS,
+    TG_SIMPLE_SYMBOL,
+    TG_WHITESPACE,
+    TG_OTHER
+} TypeGroup;
+
+int print_segment(int start, int end, char* str) {
+    for (int i = start; i < end; i++) {
+        printf("%c\n", str[i]);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 2)
@@ -69,21 +93,46 @@ int main(int argc, char *argv[])
     char source_code[100];
     fgets(source_code, 100, fptr);
 
+    int lexeme_start = -1;
+
+    TypeGroup type_group = NONE;
+
     int len = strlen(source_code);
-    char lexeme[10];
-    int lexeme_i = 0;
     for (int i = 0; i < len; i++)
     {
-        if (isalnum(source_code[i]))
-        {
-            lexeme[lexeme_i] = source_code[i];
-            lexeme_i++;
+        if (isalpha(source_code[i])) {
+            if (type_group == NONE) {
+                lexeme_start = i;
+                type_group = ALPHA;
+            }
+            else if (type_group == DIGIT) {
+                print_segment(lexeme_start, i-1, source_code);
+                type_group = ALPHA;
+                lexeme_start = i;
+            }
+            else if (type_group == SYMBOL) {
+                print_segment(lexeme_start, i-1, source_code);
+                type_group = ALPHA;
+                lexeme_start = i;
+            }
         }
-        else
-        {
-            lexeme[lexeme_i] = '\0';
-            printf("%s ", lexeme);
-            lexeme_i = 0;
+        else if (isdigit(source_code[i])) {
+            if (type_group == NONE) {
+                lexeme_start = i;
+                type_group = DIGIT;
+            }
+            else if (type_group == SYMBOL) {
+                print_segment(lexeme_start, i-1, source_code);
+                type_group = DIGIT;
+                lexeme_start = i;
+            }
+        }
+        else if (source_code[i] == '_') {
+            if (type_group != ALPHA) {
+                print_segment(lexeme_start, i-1, source_code);
+                type_group = ALPHA;
+                lexeme_start = i;
+            }
         }
     }
 
