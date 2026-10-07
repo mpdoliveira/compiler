@@ -78,6 +78,8 @@ void advance_char(Lexer *lexer)
     lexer->position++;
 }
 
+// Helper char cathegorization functions
+
 int issymb(char c)
 {
     if (c == '=' || c == '!' || c == '>' || c == '<' || c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')' || c == '{' || c == '}' || c == ':' || c == ';' || c == ',')
@@ -94,6 +96,125 @@ int issep(char c)
         return 1;
     }
     return 0;
+}
+
+// Helper printing functions
+
+const char *token_type_name(TokenType type)
+{
+    switch (type)
+    {
+    case TOKEN_ERROR:
+        return "TOKEN_ERROR";
+
+    case FUNCTION:
+        return "FUNCTION";
+
+    case MAIN:
+        return "MAIN";
+
+    case LET:
+        return "LET";
+
+    case INT:
+        return "INT";
+
+    case FLOAT:
+        return "FLOAT";
+
+    case CHAR:
+        return "CHAR";
+
+    case IF:
+        return "IF";
+
+    case ELSE:
+        return "ELSE";
+
+    case WHILE:
+        return "WHILE";
+
+    case PRINTLN:
+        return "PRINTLN";
+
+    case RETURN:
+        return "RETURN";
+
+    case LBRACKET:
+        return "LBRACKET";
+
+    case RBRACKET:
+        return "RBRACKET";
+
+    case LBRACE:
+        return "LBRACE";
+
+    case RBRACE:
+        return "RBRACE";
+
+    case ARROW:
+        return "ARROW";
+
+    case COLON:
+        return "COLON";
+
+    case SEMICOLON:
+        return "SEMICOLON";
+
+    case COMMA:
+        return "COMMA";
+
+    case ASSIGN:
+        return "ASSIGN";
+
+    case EQ:
+        return "EQ";
+
+    case NE:
+        return "NE";
+
+    case GT:
+        return "GT";
+
+    case GE:
+        return "GE";
+
+    case LT:
+        return "LT";
+
+    case LE:
+        return "LE";
+
+    case PLUS:
+        return "PLUS";
+
+    case MINUS:
+        return "MINUS";
+
+    case MULT:
+        return "MULT";
+
+    case DIV:
+        return "DIV";
+
+    case ID:
+        return "ID";
+
+    case INT_CONST:
+        return "INT_CONST";
+
+    case FLOAT_CONST:
+        return "FLOAT_CONST";
+
+    case CHAR_LITERAL:
+        return "CHAR_LITERAL";
+
+    case FMT_STRING:
+        return "FMT_STRING";
+
+    default:
+        return "UNKNOWN_TOKEN";
+    }
 }
 
 // Lexeme scanning functions
@@ -287,7 +408,7 @@ int main(int argc, char *argv[])
         else
         {
             types[i] = scan_lexeme(&lexer);
-            printf("%d ", types[i]);
+            printf("<%s>\n", token_type_name(types[i]));
             i++;
             advance_char(&lexer);
         }
