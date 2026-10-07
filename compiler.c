@@ -238,6 +238,7 @@ TokenType scan_symbol(Lexer *lexer)
 TokenType scan_lexeme(Lexer *lexer)
 {
     char c = current_char(lexer);
+
     if (isalpha(c))
         return scan_identifier(lexer);
     if (isdigit(c))
@@ -275,13 +276,22 @@ int main(int argc, char *argv[])
         .position = 0,
         .line = 1};
 
+    TokenType types[20];
+    int i = 0;
     while (lexer.position < lexer.length)
     {
         if (isspace(current_char(&lexer)))
         {
             advance_char(&lexer);
         }
-        advance_char(&lexer);
+        else
+        {
+            types[i] = scan_lexeme(&lexer);
+            printf("%d ", types[i]);
+            i++;
+            advance_char(&lexer);
+        }
     }
+
     return 0;
 }
