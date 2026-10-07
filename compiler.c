@@ -75,10 +75,7 @@ char peek_char(Lexer *lexer)
 
 void advance_char(Lexer *lexer)
 {
-    if (peek_char(lexer) != '\0')
-    {
-        lexer->position++;
-    }
+    lexer->position++;
 }
 
 int issymb(char c)
@@ -105,6 +102,7 @@ TokenType scan_identifier(Lexer *lexer)
     while (1)
     {
         char c = peek_char(lexer);
+
         if (isalnum(c) || c == '_')
         {
             advance_char(lexer);
@@ -241,19 +239,13 @@ TokenType scan_lexeme(Lexer *lexer)
 {
     char c = current_char(lexer);
     if (isalpha(c))
-    {
-        int start = lexer->position;
         return scan_identifier(lexer);
-    }
-    else if (isdigit(c))
-    {
-        int start = lexer->position;
+    if (isdigit(c))
         return scan_number(lexer);
-    }
-    else if (issymb(c))
-    {
+    if (issymb(c))
         return scan_symbol(lexer);
-    }
+
+    return TOKEN_ERROR;
 }
 
 int main(int argc, char *argv[])
@@ -282,6 +274,14 @@ int main(int argc, char *argv[])
         .length = strlen(source_code),
         .position = 0,
         .line = 1};
-    
+
+    while (lexer.position < lexer.length)
+    {
+        if (isspace(current_char(&lexer)))
+        {
+            advance_char(&lexer);
+        }
+        advance_char(&lexer);
+    }
     return 0;
 }
