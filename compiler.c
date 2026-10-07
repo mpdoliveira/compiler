@@ -237,9 +237,53 @@ const char *token_type_name(TokenType type)
 }
 
 // Lexeme scanning functions
-TokenType scan_reserved_word(Lexer *lexer)
+TokenType scan_reserved_word(Lexer* lexer, int start)
 {
-    
+    int length = lexer->position - start + 1;
+
+    // Early return 
+    if (length < 2 || length > 7) {
+        return ID;
+    }
+
+    switch (length)
+    {
+    case 2:
+        if (strncmp(&lexer->source[start], "fn", 2) == 0)
+            return FUNCTION;
+        if (strncmp(&lexer->source[start], "if", 2) == 0)
+            return IF;
+        break;
+    case 3:
+        if (strncmp(&lexer->source[start], "let", 3) == 0)
+            return LET;
+        if (strncmp(&lexer->source[start], "int", 3) == 0)
+            return INT;
+        break;
+    case 4:
+        if (strncmp(&lexer->source[start], "main", 4) == 0)
+            return MAIN;
+        if (strncmp(&lexer->source[start], "char", 4) == 0)
+            return CHAR;
+        if (strncmp(&lexer->source[start], "else", 4) == 0)
+            return ELSE;
+        break;
+    case 5:
+        if (strncmp(&lexer->source[start], "float", 5) == 0)
+            return FLOAT;
+        if (strncmp(&lexer->source[start], "while", 5) == 0)
+            return WHILE;
+        break;
+    case 6:
+        if (strncmp(&lexer->source[start], "return", 6) == 0)
+            return RETURN;
+        break;
+    case 7:
+        if (strncmp(&lexer->source[start], "println", 7) == 0)
+            return PRINTLN;
+        break;
+    }
+    return ID;
 }
 
 TokenType scan_identifier(Lexer *lexer)
@@ -264,6 +308,7 @@ TokenType scan_identifier(Lexer *lexer)
         {
             if (possible_reserved)
             {
+                return scan_reserved_word(lexer, start);
             }
             return ID;
         }
