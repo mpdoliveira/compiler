@@ -50,6 +50,27 @@ typedef struct Token
     int line;
 } Token;
 
+typedef struct ReservedWord
+{
+    char *literal;
+    TokenType type;
+} ReservedWord;
+
+ReservedWord RESERVED_WORDS[11] =
+{
+    {"fn", FUNCTION},
+    {"if", IF},
+    {"let", LET},
+    {"int", INT},
+    {"main", MAIN},
+    {"char", CHAR},
+    {"else", ELSE},
+    {"float", FLOAT},
+    {"while", WHILE},
+    {"return", RETURN},
+    {"println", PRINTLN}
+};
+
 typedef struct Lexer
 {
     char *source;
@@ -59,7 +80,7 @@ typedef struct Lexer
 } Lexer;
 
 // Helper char dealing functions
-char current_char(Lexer *lexer)
+char curr_char(Lexer *lexer)
 {
     return lexer->source[lexer->position];
 }
@@ -79,7 +100,6 @@ void advance_char(Lexer *lexer)
 }
 
 // Helper char cathegorization functions
-
 int issymb(char c)
 {
     if (c == '=' || c == '!' || c == '>' || c == '<' || c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')' || c == '{' || c == '}' || c == ':' || c == ';' || c == ',')
@@ -99,7 +119,6 @@ int issep(char c)
 }
 
 // Helper printing functions
-
 const char *token_type_name(TokenType type)
 {
     switch (type)
@@ -218,18 +237,34 @@ const char *token_type_name(TokenType type)
 }
 
 // Lexeme scanning functions
+TokenType scan_reserved_word(Lexer *lexer)
+{
+    
+}
+
 TokenType scan_identifier(Lexer *lexer)
 {
+    int start = lexer->position;
+    int possible_reserved = 1;
+
     while (1)
     {
         char c = peek_char(lexer);
 
-        if (isalnum(c) || c == '_')
+        if (isdigit(c) || c == '_')
+        {
+            possible_reserved = 0;
+            advance_char(lexer);
+        }
+        else if (isalpha(c))
         {
             advance_char(lexer);
         }
         else if (issep(c))
         {
+            if (possible_reserved)
+            {
+            }
             return ID;
         }
         else
@@ -277,7 +312,7 @@ TokenType scan_number(Lexer *lexer)
 
 TokenType scan_symbol(Lexer *lexer)
 {
-    char c = current_char(lexer);
+    char c = curr_char(lexer);
     char next_c = peek_char(lexer);
 
     switch (c)
@@ -358,10 +393,12 @@ TokenType scan_symbol(Lexer *lexer)
 }
 TokenType scan_lexeme(Lexer *lexer)
 {
-    char c = current_char(lexer);
+    char c = curr_char(lexer);
 
     if (isalpha(c))
+    {
         return scan_identifier(lexer);
+    }
     if (isdigit(c))
         return scan_number(lexer);
     if (issymb(c))
@@ -401,7 +438,7 @@ int main(int argc, char *argv[])
     int i = 0;
     while (lexer.position < lexer.length)
     {
-        if (isspace(current_char(&lexer)))
+        if (isspace(curr_char(&lexer)))
         {
             advance_char(&lexer);
         }
