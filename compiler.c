@@ -101,7 +101,7 @@ void advance_char(Lexer *lexer)
 char *cp_lexeme(Lexer *lexer, int start)
 {
     int length = lexer->position - start + 1;
-    char* lexeme = malloc((length + 1) * sizeof(char));
+    char *lexeme = malloc((length + 1) * sizeof(char));
 
     if (lexeme == NULL)
     {
@@ -304,6 +304,24 @@ TokenType scan_reserved(Lexer *lexer, int start)
     }
     return ID;
 }
+
+/*
+TokenType scan_reserved(Lexer *lexer, int start)
+{
+    int length = lexer->position - start + 1;
+    int n_reserved = sizeof(RESERVED_WORDS) / sizeof(RESERVED_WORDS[0]);
+
+    for (int i = 0; i < n_reserved; i++)
+    {
+        if (strlen(RESERVED_WORDS->literal) == length &&
+            strncmp(&lexer->source[start], RESERVED_WORDS[i].literal, length))
+        {
+            return RESERVED_WORDS[i].type;
+        }
+    }
+    return ID;
+}
+*/
 
 TokenType scan_word(Lexer *lexer)
 {
