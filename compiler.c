@@ -165,6 +165,15 @@ int issep(char c)
     return 0;
 }
 
+int isquotes(char c)
+{
+    if (c == '\'' || c == '"')
+    {
+        return 1;
+    }
+    return 0;
+}
+
 // Helper printing functions
 const char *token_type_name(TokenType type)
 {
@@ -357,31 +366,40 @@ TokenType scan_word(Lexer *lexer)
     int start = lexer->position;
     int possible_reserved = 1;
 
-    while (1)
+    char c = curr_char(lexer);
+    if(islower(c))
     {
-        char c = peek_char(lexer);
-
-        if (isdigit(c) || c == '_')
+        while (1)
         {
-            possible_reserved = 0;
-            advance_char(lexer);
-        }
-        else if (isalpha(c))
-        {
-            advance_char(lexer);
-        }
-        else if (issep(c))
-        {
-            if (possible_reserved)
+            c = peek_char(lexer);
+            if (isdigit(c) || c == '_')
             {
-                return scan_reserved(lexer, start);
+                possible_reserved = 0;
+                advance_char(lexer);
             }
-            return ID;
+            else if (isalpha(c))
+            {
+                advance_char(lexer);
+            }
+            else if (issep(c))
+            {
+                if (possible_reserved)
+                {
+                    return scan_reserved(lexer, start);
+                }
+                return ID;
+            }
         }
-        else
+    }
+    else
+    {
+        c = peek_char(lexer);
+        while (issep(c) == 0)
         {
-            return TOKEN_ERROR;
+            advance_char(lexer);
+            c = peek_char(lexer);
         }
+        return TOKEN_ERROR;
     }
 }
 
@@ -497,9 +515,37 @@ TokenType scan_symbol(Lexer *lexer)
 
     case ',':
         return COMMA;
-
     default:
         return TOKEN_ERROR;
+    }
+}
+
+TokenType scan_quotes(Lexer *lexer)
+{
+    char c = curr_char(lexer);
+    switch (c)
+    {
+        case '\'':
+            advance_char(lexer);
+            advance_char(lexer);
+            c = curr_char(lexer);
+            if (c == '\'')
+            {
+                return CHAR_LITERAL;
+            }
+            else{
+                return TOKEN_ERROR;
+            }
+        case '"':
+            c = peek_char(lexer);
+            while (c != '"' && c != '\n')
+            {
+                advance_char(lexer);
+                c = curr_char(lexer);
+            }
+            return FMT_STRING;
+        default:
+            return TOKEN_ERROR;
     }
 }
 
@@ -515,6 +561,8 @@ Token scan_token(Lexer *lexer)
         type = scan_number(lexer);
     if (issymb(c))
         type = scan_symbol(lexer);
+    if (isquotes(c))
+        type = scan_quotes(lexer);
 
     Token token = {
         .lexeme = cp_lexeme(lexer, start),
