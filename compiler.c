@@ -107,6 +107,14 @@ char *read_file(char *path)
     return source_code;
 }
 
+void free_tokens(Token *token) {
+    int n_tokens = sizeof(token) / sizeof(Token);
+
+    for (int i = 0; i < n_tokens; i++) {
+        free(token[i].lexeme);
+    }
+}
+
 // Helper char dealing functions
 char curr_char(Lexer *lexer)
 {
